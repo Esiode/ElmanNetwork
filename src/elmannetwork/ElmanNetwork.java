@@ -2,6 +2,7 @@ package elmannetwork2;
 
 import java.io.*;
 import java.text.*;
+import java.util.ArrayList;
 import java.util.Date;
 import org.encog.Encog;
 import org.encog.engine.network.activation.ActivationGaussian;
@@ -64,6 +65,10 @@ public class ElmanNetwork {
             in.close();
             NetworkCODEC.arrayToNetwork(networkStructure, elmanNetwork);
             int index = 0;
+            double sommeComputeResult = 0;
+            double averageComputeResult=0;
+            double computeScore=0;
+            StringBuilder bobby= new StringBuilder();
             for (int i = 0; i < data.size(); i++) {
                 for (int j = 0; j < data.getInputSize(); j++) {
                     dataSet.add(index, data.get(i).getInputArray()[j]);
@@ -71,14 +76,15 @@ public class ElmanNetwork {
                     index++;
                 }
                 String computeResultat = elmanNetwork.compute(dataSet).toString();
-                double computeScore=0;
-                StringBuilder bobby= new StringBuilder();
                 for(int k =13; k<20;k++){
                         bobby.append(computeResultat.charAt(k));
                 }
                 String bobbyCompute =bobby.toString();
                 computeScore = Double.parseDouble(bobbyCompute);
                 System.out.println(computeScore);
+                sommeComputeResult = sommeComputeResult+computeScore;
+                System.out.println(i);
+                averageComputeResult =sommeComputeResult/i;
             }
 
         } catch (FileNotFoundException ex) {
