@@ -151,7 +151,7 @@ public class DataSetElman {
 
         PrintWriter write = null;
         int compteur = 0;
-        int compteurAnomalie = 0;
+        double compteurAnomalie = 0;
         try {
             write = new PrintWriter(new FileOutputStream("dataTrainingSet.csv"));
             write.println();
@@ -183,7 +183,8 @@ public class DataSetElman {
         } finally {
             write.close();
         }
-        System.out.println(compteurAnomalie);
+        double pourcentage = compteurAnomalie/3276;
+        System.out.println(pourcentage*100);
     }
 
     public static double normalize(double x) {
