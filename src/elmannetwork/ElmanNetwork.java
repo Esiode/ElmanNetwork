@@ -151,6 +151,7 @@ public class ElmanNetwork {
     // Fonction qui sert �commencer le training et � sauvegarder les weights
     // TODO M�thode pour effectuer plus d'un training et sauvegarder seulement
     // les meilleurs weights qui ont �t� utilis�.
+    
     public void startTraining() {
         double elmanError = 0.0;
         double meilleureErreur = 100.0;
