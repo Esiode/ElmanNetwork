@@ -66,7 +66,10 @@ public class ElmanNetwork {
             NetworkCODEC.arrayToNetwork(networkStructure, elmanNetwork);
             int index = 0;
             double sommeComputeResult = 0;
-            double averageComputeResult=0;
+            double averageComputeResult = 0;
+            double computeScore = 0;
+            double minComputeScore = 100;
+            double maxComputeScore = 0;
             for (int i = 0; i < data.size(); i++) {
                 for (int j = 0; j < data.getInputSize(); j++) {
                     dataSet.add(index, data.get(i).getInputArray()[j]);
@@ -74,18 +77,28 @@ public class ElmanNetwork {
                     index++;
                 }
                 String computeResultat = elmanNetwork.compute(dataSet).toString();
-                double computeScore=0;
-                StringBuilder bobby= new StringBuilder();
-                for(int k =13; k<20;k++){
-                        bobby.append(computeResultat.charAt(k));
-                }
-                String bobbyCompute =bobby.toString();
-                computeScore = Double.parseDouble(bobbyCompute);
-                sommeComputeResult = sommeComputeResult+computeScore;
-                averageComputeResult =sommeComputeResult/i;
-                System.out.println(averageComputeResult);
-            }
 
+                StringBuilder temp = new StringBuilder();
+                for (int k = 13; k < 20; k++) {
+                    temp.append(computeResultat.charAt(k));
+                }
+
+                String tempCompute = temp.toString();
+                computeScore = Double.parseDouble(tempCompute);
+                sommeComputeResult = sommeComputeResult + computeScore;
+                averageComputeResult = sommeComputeResult / i;
+                computeScore = Double.parseDouble(tempCompute);
+
+                if (minComputeScore > computeScore) {
+                    minComputeScore = computeScore;
+                } else if (maxComputeScore < computeScore) {
+                    maxComputeScore = computeScore;
+                }
+                System.out.println(computeScore);
+
+            }
+            double incertitudeScore = (maxComputeScore - minComputeScore) / 2;
+            System.out.println("Maximum = " + maxComputeScore + "\nMinimum = " + minComputeScore+"\nMoyenne = "+averageComputeResult+ "\nIncertitude = " + incertitudeScore);
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();
         } catch (IOException ex) {
@@ -141,10 +154,10 @@ public class ElmanNetwork {
     public void startTraining() {
         double elmanError = 0.0;
         double meilleureErreur = 100.0;
-        double [] meilleureStructure = null;
+        double[] meilleureStructure = null;
         for (int i = 0; i < 50; i++) {
             elmanError = trainNetwork("Elman", elmanNetwork, trainingSet);
-            if (meilleureErreur > elmanError){
+            if (meilleureErreur > elmanError) {
                 System.out.println("TROUVÉ UN MEILLEUR");
                 meilleureErreur = elmanError;
                 meilleureStructure = NetworkCODEC.networkToArray(elmanNetwork);
@@ -157,7 +170,7 @@ public class ElmanNetwork {
         Encog.getInstance().shutdown();
     }
 
-    private void sauvegarderNetwork(double [] networkStructure) {
+    private void sauvegarderNetwork(double[] networkStructure) {
         FileOutputStream fileOut;
         String fileName = "NetworkStructure";
         try {
