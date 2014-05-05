@@ -13,7 +13,7 @@ public class Main {
         //991081119910795103101116116105109101
         StringBuffer sysCallContainer = new StringBuffer();
         for (int i = 0; i < mot.length(); i++) {
-//ALLLLOOOOOOO
+
 
             int temp = mot.charAt(i);
             sysCallContainer.append(temp); // Crée un code, formé de la
