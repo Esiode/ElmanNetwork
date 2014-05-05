@@ -30,7 +30,7 @@ public class ElmanNetwork {
     public BasicNetwork elmanNetwork = createElmanNetwork();
     private MLDataSet trainingSet = dataSet();
     private final int INPUT_NEURONS = 10;
-    private final int HIDDEN_LAYER = 6;
+    private final int HIDDEN_LAYER = 1;
     private final int OUTPUT_NEURONS = 1;
     double weights[][] = null;
     CSVNeuralDataSet data = new CSVNeuralDataSet("dataToCompute.csv",
