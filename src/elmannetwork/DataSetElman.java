@@ -161,7 +161,7 @@ public class DataSetElman {
                 int sysCallRnd = rnd.nextInt(1000);
                 double sysCallToWrite = listeSysCall.get(i);
 
-                if (sysCallRnd < 20) {
+                if (sysCallRnd < 100) {
                     sysCallToWrite = 9711011111410997108101.0;
                     indiceAnormale = true;
                     compteurAnomalie++;
