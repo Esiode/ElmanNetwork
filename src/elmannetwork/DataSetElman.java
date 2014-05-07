@@ -23,7 +23,7 @@ public class DataSetElman {
     /**
      * Nombre d'inputs d'une séquence.
      */
-    private final int INPUT = 10;
+    private final int INPUT = 50;
     /**
      * ArrayList qui contient les appels systèmes isolés et triés pour facilité
      * leur traitement.
@@ -37,8 +37,8 @@ public class DataSetElman {
     private Scanner read = new Scanner(System.in);
     private String docToTrace;
     private ArrayList<Double> listeSysCall = new ArrayList<Double>();
-    private static double dataHigh = 991081119910795103101116116105109101.0;
-    private static double dataLow = 11410197100.0;
+    private static double dataHigh = 991081119910795103101116116105109101.0; //Représentation de l'appel système clock_gettime qui a la plus grande valeur en ASCII
+    private static double dataLow = 11410197100.0; //Représentation de l'appel système read qui a la plus petite valeur en ASCII
     private static double normalizedHigh = 1.0;
     private static double normalizedLow = 0.0;
     private boolean indiceAnormale = false;
@@ -155,13 +155,13 @@ public class DataSetElman {
         try {
             write = new PrintWriter(new FileOutputStream("dataTrainingSet.csv"));
             write.println();
-
+            int compteurLignes = 0;
             for (int i = 0; i < listeSysCall.size(); i++) {
                 compteur++;
                 int sysCallRnd = rnd.nextInt(1000);
                 double sysCallToWrite = listeSysCall.get(i);
 
-                if (sysCallRnd < 100) {
+                if (sysCallRnd < 100 && compteurLignes >= 1) {
                     sysCallToWrite = 9711011111410997108101.0;
                     indiceAnormale = true;
                     compteurAnomalie++;
@@ -174,6 +174,7 @@ public class DataSetElman {
                             + indiceNormalite);
                     indiceAnormale = false;
                     indiceNormalite = 1;
+                    compteurLignes++;
                 } else {
                     write.print(normalize(sysCallToWrite) + ",");
                 }
