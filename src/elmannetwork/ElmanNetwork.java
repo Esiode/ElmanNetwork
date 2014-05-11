@@ -29,8 +29,8 @@ public class ElmanNetwork {
 
     public BasicNetwork elmanNetwork = createElmanNetwork();
     private MLDataSet trainingSet = dataSet();
-    private final int INPUT_NEURONS = 10;
-    private final int HIDDEN_LAYER = 1;
+    private final int INPUT_NEURONS = 50;
+    private final int HIDDEN_LAYER = 4;
     private final int OUTPUT_NEURONS = 1;
     double weights[][] = null;
     CSVNeuralDataSet data = new CSVNeuralDataSet("dataToCompute.csv",
@@ -52,7 +52,7 @@ public class ElmanNetwork {
     }
 
     // Méthode qui permet d'utiliser les weights qui ont été déterminés (et
-    // sauvegardés dans le fichier "weights.txt") par les phases
+    // sauvegardés dans le fichier "NetworkStructure.ser") par les phases
     // d'entraînements antérieures. De plus, elle fait compute l'elman network
     // avec un data set d'input provenant du fichier dataToCompute.
     public void computeNetwork() {
@@ -73,9 +73,12 @@ public class ElmanNetwork {
             for (int i = 0; i < data.size(); i++) {
                 for (int j = 0; j < data.getInputSize(); j++) {
                     dataSet.add(index, data.get(i).getInputArray()[j]);
-                    //System.out.println(dataSet.getData(index));
                     index++;
                 }
+                
+
+            }
+            for (int i = 0; i < 50; i++) {
                 String computeResultat = elmanNetwork.compute(dataSet).toString();
 
                 StringBuilder temp = new StringBuilder();
@@ -86,17 +89,18 @@ public class ElmanNetwork {
                 String tempCompute = temp.toString();
                 computeScore = Double.parseDouble(tempCompute);
                 sommeComputeResult = sommeComputeResult + computeScore;
-                averageComputeResult = sommeComputeResult / i;
-                computeScore = Double.parseDouble(tempCompute);
+                
 
                 if (minComputeScore > computeScore) {
                     minComputeScore = computeScore;
-                } else if (maxComputeScore < computeScore) {
+                }
+                if (maxComputeScore < computeScore) {
                     maxComputeScore = computeScore;
+                    System.out.println("New max : " + maxComputeScore);
                 }
                 System.out.println(computeScore);
-
             }
+            averageComputeResult = sommeComputeResult / 50;
             double incertitudeScore = (maxComputeScore - minComputeScore) / 2;
             System.out.println("Maximum = " + maxComputeScore + "\nMinimum = " + minComputeScore+"\nMoyenne = "+averageComputeResult+ "\nIncertitude = " + incertitudeScore);
         } catch (FileNotFoundException ex) {
@@ -157,13 +161,14 @@ public class ElmanNetwork {
         double meilleureErreur = 100.0;
         double[] meilleureStructure = null;
         for (int i = 0; i < 50; i++) {
+            elmanNetwork.reset();
             elmanError = trainNetwork("Elman", elmanNetwork, trainingSet);
             if (meilleureErreur > elmanError) {
                 System.out.println("TROUVÉ UN MEILLEUR");
                 meilleureErreur = elmanError;
                 meilleureStructure = NetworkCODEC.networkToArray(elmanNetwork);
             }
-            elmanNetwork.reset();
+            
         }
 
         System.out.println("Best error rate with Elman Network: " + meilleureErreur);
