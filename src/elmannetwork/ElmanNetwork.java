@@ -17,6 +17,7 @@ import org.encog.neural.networks.structure.NetworkCODEC;
 import org.encog.neural.networks.training.TrainingSetScore;
 import org.encog.neural.networks.training.anneal.NeuralSimulatedAnnealing;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
+import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
 import org.encog.neural.pattern.ElmanPattern;
 
 /**
@@ -29,8 +30,8 @@ public class ElmanNetwork {
 
     public BasicNetwork elmanNetwork = createElmanNetwork();
     private MLDataSet trainingSet = dataSet();
-    private final int INPUT_NEURONS = 50;
-    private final int HIDDEN_LAYER = 4;
+    private final int INPUT_NEURONS = 10;
+    private final int HIDDEN_LAYER = 1;
     private final int OUTPUT_NEURONS = 1;
     double weights[][] = null;
     CSVNeuralDataSet data = new CSVNeuralDataSet("dataToCompute.csv",
@@ -102,7 +103,7 @@ public class ElmanNetwork {
             }
             averageComputeResult = sommeComputeResult / 50;
             double incertitudeScore = (maxComputeScore - minComputeScore) / 2;
-            System.out.println("Maximum = " + maxComputeScore + "\nMinimum = " + minComputeScore+"\nMoyenne = "+averageComputeResult+ "\nIncertitude = " + incertitudeScore);
+            System.out.println(/*"Maximum = " + maxComputeScore + "\nMinimum = " + minComputeScore+"\n*/"Moyenne = "+averageComputeResult+ ""/*"\nIncertitude = " + incertitudeScore*/);
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();
         } catch (IOException ex) {
@@ -117,8 +118,7 @@ public class ElmanNetwork {
     // dataTrainingSet.csv (pour l'ouvrir utiliser un editeur de texte comme
     // Notepad++ plutot qu'Excel)
     private MLDataSet dataSet() {
-        CSVNeuralDataSet trainingData = new CSVNeuralDataSet(
-                "dataTrainingSet.csv", INPUT_NEURONS, OUTPUT_NEURONS, true);
+        CSVNeuralDataSet trainingData = new CSVNeuralDataSet("dataTrainingSet.csv", INPUT_NEURONS, OUTPUT_NEURONS, true);
         MLDataSet dataTrainingSet = trainingData;
         return dataTrainingSet;
     }
@@ -134,8 +134,7 @@ public class ElmanNetwork {
         final MLTrain trainAlt = new NeuralSimulatedAnnealing(network, score,
                 10, 2, 100);
 
-        final MLTrain trainMain = new Backpropagation(network, trainingSet,
-                0.00000001, 0.0);
+        final MLTrain trainMain = new ResilientPropagation(network, trainingSet);
 
         final StopTrainingStrategy stop = new StopTrainingStrategy();
         trainMain.addStrategy(new Greedy());
