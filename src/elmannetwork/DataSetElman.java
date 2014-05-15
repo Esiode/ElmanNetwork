@@ -224,19 +224,23 @@ public class DataSetElman {
         System.out.println(pourcentage*100);
     }
 
-    /**
+    /** Fonction qui normalise les appels système entre 0 et 1.
      *
-     * @param x
-     * @return
+     * @param x Un appel système en chaîne ASCII à normaliser.
+     * @return Cet appel système normaliser entre 0 et 1.
      */
     public static double normalize(double x) {
         return ((x - dataLow) / (dataHigh - dataLow))
                 * (normalizedHigh - normalizedLow) + normalizedLow;
     }
 
-    /**
+    /**Méthode qui crée un Dataset d'évaluation (computeDataSet). Elle converti
+     * les appels système à évaluer en chaîne ASCII et les normalise. Dans
+     * l'application, les séries d'appels systèmes seront reçues par une
+     * liste (ArrayList) et non d'un fichier texte. Cette méthode devra être
+     * modifiée pour fonctionner dans le cadre de l'application.
      *
-     * @param trace
+     * @param trace Liste contenant tous les appels système.
      */
     public void createComputeDataSet(ArrayList<String> trace) {
         listeSysCall.clear();
@@ -263,8 +267,10 @@ public class DataSetElman {
             for (int i = 0; i < listeSysCall.size(); i++) {
                 compteur++;
                 int sysCallRnd = rnd.nextInt(1000);
-                
                 double sysCallToWrite = listeSysCall.get(i);
+                /*
+                Gestion de la polution manuelle.
+                */
                 if (sysCallRnd < 500) {
                     sysCallToWrite = 9711011111410997108101.0;
                     indiceAnormale = true;
@@ -281,7 +287,7 @@ public class DataSetElman {
                     write.print(normalize(sysCallToWrite) + ",");
                 }
             }
-            //System.out.println(compteurAnomalie*100/5412);
+            System.out.println(compteurAnomalie*100/trace.size());
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();
         } finally {
