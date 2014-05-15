@@ -1,9 +1,6 @@
 package elmannetwork;
 
 import java.io.*;
-import java.text.*;
-import java.util.ArrayList;
-import java.util.Date;
 import org.encog.Encog;
 import org.encog.engine.network.activation.ActivationGaussian;
 import org.encog.ml.CalculateScore;
@@ -21,28 +18,51 @@ import org.encog.neural.networks.training.propagation.resilient.ResilientPropaga
 import org.encog.neural.pattern.ElmanPattern;
 
 /**
- * Classe qui repr�sente le neural network et qui contient les m�thodes pour
- * l'entrainer et l'utiliser.
+ * Classe qui représente le neural network et qui contient les méthodes pour
+ * l'entrainer et l'utiliser. Soutenu par la librairie Encog.
  *
  * @author Philippe Marcotte et Olivier Vincent
  */
 public class ElmanNetwork {
-
+    /**
+     * Le Elman network.
+     */
     public BasicNetwork elmanNetwork = createElmanNetwork();
+    /**
+     * Le data set d'entrainement qui est utilisé pour ajuster les poids.
+     */
     private MLDataSet trainingSet = dataSet();
+    /**
+     * Nombre d'input que prend l'algorithme à la fois.
+     */
     private final int INPUT_NEURONS = 10;
+    /**
+     * Nombre de "Hidden layer" dans le Elman network.
+     */
     private final int HIDDEN_LAYER = 1;
+    /**
+     * Nombre d'output qui ressort du Elman network à la fin de son traitement.
+     */
     private final int OUTPUT_NEURONS = 1;
+    /**
+     * Matrice contenant les poids.
+     */
     double weights[][] = null;
+    /**
+     * Fichier CSV regroupant les séquences d'appels système à évaluer.
+     */
     CSVNeuralDataSet data = new CSVNeuralDataSet("dataToCompute.csv",
             INPUT_NEURONS, 0, true);
+    /**
+     * Le data set contenant tous les inputs à évaluer.
+     */
     private BasicMLData dataSet = new BasicMLData(data.size() * INPUT_NEURONS);
-
-    /*
-     * Fonction qui crée la structure du Elman Network
+    /**
+     * Construit un neural network de type Elman ayant comme fonction
+     * d'activation par défaut la fonction gaussienne.
+     * @return La structure du réseau Elman.
      */
     private BasicNetwork createElmanNetwork() {
-        // construct an Elman type network
         ElmanPattern pattern = new ElmanPattern();
         pattern.setActivationFunction(new ActivationGaussian());
         pattern.setInputNeurons(INPUT_NEURONS);
@@ -51,11 +71,11 @@ public class ElmanNetwork {
 
         return (BasicNetwork) pattern.generate();
     }
-
-    // Méthode qui permet d'utiliser les weights qui ont été déterminés (et
-    // sauvegardés dans le fichier "NetworkStructure.ser") par les phases
-    // d'entraînements antérieures. De plus, elle fait compute l'elman network
-    // avec un data set d'input provenant du fichier dataToCompute.
+    /** Méthode qui "compute" l'Elman network avec un data set d'appels
+     * système provenant d'une liste ou (pour l'instant) d'un fichier texte.
+     * Les poids ou "weights" enregistrées d'un training précédant seronts
+     * reprises et utilisées pour évaluer chaque séquence.
+     */
     public void computeNetwork() {
         try {
             double[] networkStructure = null;
@@ -76,22 +96,16 @@ public class ElmanNetwork {
                     dataSet.add(index, data.get(i).getInputArray()[j]);
                     index++;
                 }
-                
-
             }
             for (int i = 0; i < 50; i++) {
                 String computeResultat = elmanNetwork.compute(dataSet).toString();
-
                 StringBuilder temp = new StringBuilder();
                 for (int k = 13; k < 20; k++) {
                     temp.append(computeResultat.charAt(k));
                 }
-
                 String tempCompute = temp.toString();
                 computeScore = Double.parseDouble(tempCompute);
                 sommeComputeResult = sommeComputeResult + computeScore;
-                
-
                 if (minComputeScore > computeScore) {
                     minComputeScore = computeScore;
                 }
@@ -109,72 +123,74 @@ public class ElmanNetwork {
         } catch (IOException ex) {
             ex.printStackTrace();
         } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
-
-    // Fonction qui cr�e le training set � partir du fichier
-    // dataTrainingSet.csv (pour l'ouvrir utiliser un editeur de texte comme
-    // Notepad++ plutot qu'Excel)
+    /**Fonction qui crée le training set à partir du fichier
+     * dataTrainingSet.csv (pour l'ouvrir utiliser un editeur de texte comme
+     * Notepad++ plutôt qu'Excel)
+     * 
+     * @return Un MLDataSet du data set d'entrainement contenu dans le fichier
+     * dataTrainingSet.csv
+     */
     private MLDataSet dataSet() {
         CSVNeuralDataSet trainingData = new CSVNeuralDataSet("dataTrainingSet.csv", INPUT_NEURONS, OUTPUT_NEURONS, true);
         MLDataSet dataTrainingSet = trainingData;
         return dataTrainingSet;
     }
-
-    // Fonction qui prend le training set et fait compute l'Elman network pour
-    // ensuite compar� l'output avec ce qui �tait attendu (l'output id�al).
-    // Les weights du neural network seront ensuite modifi�s en fonction du
-    // score obtenu pour se rapprocher de ces outputs id�aux.
-    private double trainNetwork(final String what, final BasicNetwork network,
+    /**Fonction qui s'occupe des séences d'entrainements.
+     * Compare les outputs des séquences d'appels systèmes qu'il calcule
+     * avec l'output idéal. Il ajuste la valeur des poids en conséquence. 
+     * 
+     * @param network Le Elman network.
+     * @param trainingSet Le set d'entrainement.
+     * @return Le taux d'erreur de son entrainement.
+     */ 
+    private double trainNetwork(final BasicNetwork network,
             final MLDataSet trainingSet) {
-        // train the neural network
         CalculateScore score = new TrainingSetScore(trainingSet);
         final MLTrain trainAlt = new NeuralSimulatedAnnealing(network, score,
                 10, 2, 100);
-
         final MLTrain trainMain = new ResilientPropagation(network, trainingSet);
-
         final StopTrainingStrategy stop = new StopTrainingStrategy();
         trainMain.addStrategy(new Greedy());
         trainMain.addStrategy(new HybridStrategy(trainAlt));
         trainMain.addStrategy(stop);
-
         int iteration = 0;
         while (!stop.shouldStop()) {
             trainMain.iteration();
-            System.out.println("Training " + what + ", Itération #"
+            System.out.println("Training Elman, Itération #"
                     + iteration + " Error:" + trainMain.getError());
             iteration++;
         }
         return trainMain.getError();
     }
-
-    // Fonction qui sert �commencer le training et � sauvegarder les weights
-    // TODO M�thode pour effectuer plus d'un training et sauvegarder seulement
-    // les meilleurs weights qui ont �t� utilis�.
-    
+    /**Méthode qui débute une séence d'entrainement.
+     * En ce moment, cette action fait 50 séence d'entrainement et garde les
+     * résultats de la meilleure séence d'entrainement.
+     */
     public void startTraining() {
         double elmanError = 0.0;
         double meilleureErreur = 100.0;
         double[] meilleureStructure = null;
         for (int i = 0; i < 50; i++) {
             elmanNetwork.reset();
-            elmanError = trainNetwork("Elman", elmanNetwork, trainingSet);
+            elmanError = trainNetwork(elmanNetwork, trainingSet);
             if (meilleureErreur > elmanError) {
                 System.out.println("TROUVÉ UN MEILLEUR");
                 meilleureErreur = elmanError;
                 meilleureStructure = NetworkCODEC.networkToArray(elmanNetwork);
-            }
-            
+            } 
         }
-
         System.out.println("Best error rate with Elman Network: " + meilleureErreur);
         sauvegarderNetwork(meilleureStructure);
         Encog.getInstance().shutdown();
     }
-
+    /**Méthode qui sauvegarde la structure du network dans un fichier 
+     * séréalisable.
+     * 
+     * @param networkStructure La structure du network.
+     */
     private void sauvegarderNetwork(double[] networkStructure) {
         FileOutputStream fileOut;
         String fileName = "NetworkStructure";
@@ -188,6 +204,5 @@ public class ElmanNetwork {
             System.out.println("Generale I/O exception: " + e.getMessage());
             e.printStackTrace();
         }
-
     }
 }
