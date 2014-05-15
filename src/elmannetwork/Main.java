@@ -9,25 +9,19 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
-        String mot = "clock_gettime";//1011121111081089511997105116
-        //991081119910795103101116116105109101
+        /*String mot = "clock_gettime";
         StringBuffer sysCallContainer = new StringBuffer();
+        /
+            Conversion en chaîne ASCII des appels système.
+         /
         for (int i = 0; i < mot.length(); i++) {
-
-
             int temp = mot.charAt(i);
-            sysCallContainer.append(temp); // Crée un code, formé de la
-            // somme des code ASCII de
-            // chaque charactère qui
-            // forment l'appel système, qui
-            // représente l'appel système
-
-
+            sysCallContainer.append(temp);
         }
         String sysCallValue = sysCallContainer.toString();
-        System.out.println(sysCallValue);
+        */
         Scanner lire = new Scanner(System.in);
-        DataSetElman yo = new DataSetElman();
+        DataSetElman dataSet = new DataSetElman();
         ElmanNetwork elman = new ElmanNetwork();
         System.out.println("Train le network?");
         int rep = lire.nextInt();
