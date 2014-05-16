@@ -23,7 +23,7 @@ public class DataSetElman {
     /**
      * Nombre d'inputs d'une séquence.
      */
-    private final int INPUT = 10;
+    private final int INPUT = 100;
     /**
      * ArrayList qui contient les appels systèmes isolés et triés pour facilité
      * leur traitement.
@@ -33,7 +33,7 @@ public class DataSetElman {
      * Gérénateur aléatoire simple.
      */
     private Random rnd = new Random();
-    private Scanner lire = new Scanner(System.in);
+    private Scanner lr = new Scanner(System.in);
     private Scanner read = new Scanner(System.in);
     private String docToTrace;
     private ArrayList<Double> listeSysCall = new ArrayList<Double>();
@@ -54,21 +54,21 @@ public class DataSetElman {
         int rep = 0;
         while (!continuer) {
             System.out.println("Créer un trainingSet ou un computeSet?");
-            rep = lire.nextInt();
+            rep = lr.nextInt();
             if (rep == 0) {
                 System.out.println("Quel fichier to Trace?");
                 docToTrace = read.nextLine();
                 traces();
                 createTrainingDataSet(trace);
                 System.out.println("Faire autre chose?");
-                continuer = lire.nextBoolean();
+                continuer = lr.nextBoolean();
             } else if (rep == 1) {
                 System.out.println("Quel fichier to Trace?");
                 docToTrace = read.nextLine();
                 traces();
                 createComputeDataSet(trace);
                 System.out.println("Faire autre chose?");
-                continuer = lire.nextBoolean();
+                continuer = lr.nextBoolean();
             } else if (rep == 2) {
                 break;
             }
@@ -85,6 +85,7 @@ public class DataSetElman {
      * devoir être adaptée.
      */
     public void traces() {
+        trace.clear();
         BufferedReader lire = null;
         try {
             lire = new BufferedReader(new FileReader(docToTrace + ".txt"));
@@ -94,19 +95,33 @@ public class DataSetElman {
             while (sysCalls != null) {
                 sysCall.append(sysCalls);
                 sysCalls = lire.readLine();
-                //System.out.println(sysCall);
+                System.out.println(sysCall);
             }
             String traces = sysCall.toString();
             traceBrute = traces.split(","); // Voir le fichier strace.txt, cette
             // action sépare les appels
             // systèmes entre eux.
+            System.out.println("Quel taux de pollution?");
+            int pollution = lr.nextInt();
+            double compteurAnomalie = 0;
             for (int i = 0; i < traceBrute.length; i++) {
                 if (!traceBrute[i].equalsIgnoreCase("clock_gettime")
                         && !traceBrute[i].equalsIgnoreCase("recvfrom")) {
+                    if (i > 101) {
+                        int sysCallRnd = rnd.nextInt(1000);
+                        if (sysCallRnd < pollution) {
+                            traceBrute[i] = "anomalie";
+                            compteurAnomalie++;
+                        }
+                    }
+
                     trace.add(traceBrute[i]);
                 }
             }
-            //System.out.println(trace.size());
+            System.out.println(trace.size());
+            System.out.println(trace.get(0));
+            double pourcentage = compteurAnomalie / trace.size() * 100;
+            System.out.println(pourcentage);
         } catch (FileNotFoundException ex) {
             Logger.getLogger(DataSetElman.class.getName()).log(Level.SEVERE,
                     null, ex);
@@ -155,16 +170,12 @@ public class DataSetElman {
         try {
             write = new PrintWriter(new FileOutputStream("dataTrainingSet.csv"));
             write.println();
-            int compteurLignes = 0;
             for (int i = 0; i < listeSysCall.size(); i++) {
                 compteur++;
-                int sysCallRnd = rnd.nextInt(1000);
                 double sysCallToWrite = listeSysCall.get(i);
 
-                if (sysCallRnd < 10 && compteurLignes >= 2) {
-                    sysCallToWrite = 9711011111410997108101.0;
+                if (sysCallToWrite == 9711011110997108105101.0) {
                     indiceAnormale = true;
-                    compteurAnomalie++;
                 }
                 if (compteur % INPUT == 0) {
                     if (indiceAnormale) {
@@ -174,7 +185,9 @@ public class DataSetElman {
                             + indiceNormalite);
                     indiceAnormale = false;
                     indiceNormalite = 1;
-                    compteurLignes++;
+                    if (compteur != 0) {
+                        i = i - (INPUT - 1);
+                    }
                 } else {
                     write.print(normalize(sysCallToWrite) + ",");
                 }
@@ -184,8 +197,6 @@ public class DataSetElman {
         } finally {
             write.close();
         }
-        double pourcentage = compteurAnomalie/3276;
-        //System.out.println(pourcentage*100);
     }
 
     public static double normalize(double x) {
@@ -218,26 +229,16 @@ public class DataSetElman {
             double compteurAnomalie = 0;
             for (int i = 0; i < listeSysCall.size(); i++) {
                 compteur++;
-                int sysCallRnd = rnd.nextInt(1000);
-                
                 double sysCallToWrite = listeSysCall.get(i);
-                if (sysCallRnd < 500) {
-                    sysCallToWrite = 9711011111410997108101.0;
-                    indiceAnormale = true;
-                    compteurAnomalie ++;
-                }
+
                 if (compteur % INPUT == 0) {
-                    if (indiceAnormale) {
-                        indiceNormalite = 0;
-                    }
-                    write.println(normalize(sysCallToWrite));
-                    indiceAnormale = false;
-                    indiceNormalite = 1;
+                    write.println(normalize(sysCallToWrite) + ",0");
+                    i = i - (INPUT - 1);
                 } else {
                     write.print(normalize(sysCallToWrite) + ",");
                 }
+
             }
-            //System.out.println(compteurAnomalie*100/5412);
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();
         } finally {
