@@ -14,7 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Classe qui crée un Dataset à partir d'un fichier contenant des appels
+ * Classe qui crée un Dataset à partir d'un fichier texte contenant des appels
  * systèmes.
  *
  * @author Philippe Marcotte et Olivier Vincent
@@ -26,7 +26,7 @@ public class DataSetElman {
      */
     private final int INPUT = 100;
     /**
-     * ArrayList qui contient les appels systèmes isolés et triés pour facilité
+     * ArrayList qui contient les appels systèmes triés pour facilité
      * leur traitement.
      */
     ArrayList<String> trace = new ArrayList<String>();
@@ -35,19 +35,57 @@ public class DataSetElman {
      */
     private Random rnd = new Random();
     private Scanner lr = new Scanner(System.in);
+    /**
+     * Scanner principal qui permet de lire les réponses de l'utilisateur.
+     */
+    private Scanner lire = new Scanner(System.in);
+    /**
+     * Scanner secondaire qui permet de lire les réponses de l'utilisateur 
+     * lorsque le scanner principal est occupé.
+     */
     private Scanner read = new Scanner(System.in);
+    /**
+     * String contenant le nom du fichier à tracer.
+     */
     private String docToTrace;
+    /**
+     * Liste des appels système une fois convertis en chaîne de code "ASCII".
+     */
     private ArrayList<Double> listeSysCall = new ArrayList<Double>();
-    private static double dataHigh = 991081119910795103101116116105109101.0; //Représentation de l'appel système clock_gettime qui a la plus grande valeur en ASCII
-    private static double dataLow = 11410197100.0; //Représentation de l'appel système read qui a la plus petite valeur en ASCII
-    private static double normalizedHigh = 100;
-    private static double normalizedLow = 1;
+    /**
+     * Représentation de l'appel système clock_gettime, qui a la plus grande
+     * valeur en ASCII. Ça sera la valeur maximum à normaliser.
+     */
+    private static double dataHigh = 991081119910795103101116116105109101.0; 
+    /**
+     * Représentation de l'appel système read qui a la plus petite valeur
+     * en ASCII. Ça sera la valeur minimale à normaliser.
+     */
+    private static double dataLow = 11410197100.0;
+    /**
+     * Borne maximum de la normalisation.
+     */
+    private static double normalizedHigh = 0.9;
+    /**
+     * Borne minimale de la normalisation.
+     */
+    private static double normalizedLow = 0.1;
+    /**
+     * Devient true lorsqu'il y a une anomalie dans la séquence. 
+     * Nous l'utilisons seulement pour faciliter les tests.
+     */
     private boolean indiceAnormale = false;
+    /**
+     * Valeur par défaut du output idéal, s'il n'y a pas d'anomalies dans
+     * la séquence. Devient 0 si la séquence contient une ou plusieurs anomalies.
+     */
     private int indiceNormalite = 1;
 
     /**
      * Constructeur de la classe qui crée un dataset à partir d'une série
-     * d'appels systèmes storés dans un fichier.
+     * d'appels systèmes storés dans un fichier. Depuis ces commandes il est
+     * possible de créer un dataset d'entrainement (Trainingset) ou un dataset
+     * à évaluer (Computeset).
      */
     public DataSetElman() {
 
@@ -73,17 +111,16 @@ public class DataSetElman {
             } else if (rep == 2) {
                 break;
             }
-
         }
     }
 
     /**
      * Méthode qui trie les appels systèmes (contenus dans un fichier) et les
-     * organise facilité la création d'un dataset d'input. Méthode probablement
-     * temporaire. Elle nous était nécessaire pour initialiser l'arrayList de
-     * trace contenant les input.On se savait pas sous quelle forme on allait
-     * obtenir les appels systèmes en réalité, alors cette méthode risque de
-     * devoir être adaptée.
+     * organise pour facilité la création d'un dataset d'input. Méthode 
+     * probablement temporaire. Elle nous était nécessaire pour initialiser 
+     * l'ArrayList de trace contenant les input.On se savait pas sous quelle 
+     * forme on allait obtenir les appels systèmes en réalité, alors cette 
+     * méthode risque de devoir être adaptée.
      */
     public void traces() {
         trace.clear();
@@ -105,6 +142,12 @@ public class DataSetElman {
             System.out.println("Quel taux de pollution?");
             int pollution = lr.nextInt();
             double compteurAnomalie = 0;
+            traceBrute = traces.split(",");
+            /*
+            Trie des appels système "clock_gettime" et "recvfrom", considérés
+            comme inoffensifs et qui sont présent en trop grande quantité.
+            Leur trie ne fait qu'alléger la série d'appels systèmes.
+            */
             for (int i = 0; i < traceBrute.length; i++) {
                 if (!traceBrute[i].equalsIgnoreCase("clock_gettime")
                         && !traceBrute[i].equalsIgnoreCase("recvfrom")) {
@@ -120,7 +163,6 @@ public class DataSetElman {
                 }
             }
             System.out.println(trace.size());
-            System.out.println(trace.get(0));
             double pourcentage = compteurAnomalie / trace.size() * 100;
             System.out.println(pourcentage);
         } catch (FileNotFoundException ex) {
@@ -145,27 +187,26 @@ public class DataSetElman {
      * les transforme en code chiffré et les écrits sous forme d'inputs valides
      * pour le network dans un fichier .csv.
      *
-     * @param trace ArrayList de String contenant les appels systèmes triés et
-     * isolés.
+     * @param trace ArrayList de String contenant les appels systèmes triés.
      */
     public void createTrainingDataSet(ArrayList<String> trace){
         listeSysCall.clear();
         int trim = trace.size() % 100;
         for (int i = 0; i < trace.size() - trim; i++) {
             StringBuffer sysCallContainer = new StringBuffer();
+            /*
+            Conversion en chaîne ASCII des appels système.
+            */
             for (int k = 0; k < trace.get(i).length(); k++) {
                 int temp = trace.get(i).charAt(k);
-                sysCallContainer.append(temp); // Crée un code, formé de la
-                // somme des code ASCII de
-                // chaque charactère qui
-                // forment l'appel système, qui
-                // représente l'appel système
+                sysCallContainer.append(temp);
             }
             String sysCallValue = sysCallContainer.toString();
             listeSysCall.add(Double.parseDouble(sysCallValue));
         }
 
         FileWriter out = null;
+        PrintWriter write = null;
         int compteur = 0;
         double compteurAnomalie = 0;
         try {
@@ -212,25 +253,39 @@ public class DataSetElman {
                 Logger.getLogger(DataSetElman.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+        double pourcentage = compteurAnomalie/trace.size();
+        System.out.println(pourcentage*100);
     }
 
+    /** Fonction qui normalise les appels système entre 0 et 1.
+     *
+     * @param x Un appel système en chaîne ASCII à normaliser.
+     * @return Cet appel système normaliser entre 0 et 1.
+     */
     public static double normalize(double x) {
         return ((x - dataLow) / (dataHigh - dataLow))
                 * (normalizedHigh - normalizedLow) + normalizedLow;
     }
 
+    /**Méthode qui crée un Dataset d'évaluation (computeDataSet). Elle converti
+     * les appels système à évaluer en chaîne ASCII et les normalise. Dans
+     * l'application, les séries d'appels systèmes seront reçues par une
+     * liste (ArrayList) et non d'un fichier texte. Cette méthode devra être
+     * modifiée pour fonctionner dans le cadre de l'application.
+     *
+     * @param trace Liste contenant tous les appels système.
+     */
     public void createComputeDataSet(ArrayList<String> trace) {
         listeSysCall.clear();
         int trim = trace.size() % 100;
         for (int i = 0; i < trace.size() - trim; i++) {
             StringBuffer sysCallContainer = new StringBuffer();
+            /*
+            Conversion en chaîne ASCII des appels système.
+            */
             for (int k = 0; k < trace.get(i).length(); k++) {
                 int temp = trace.get(i).charAt(k);
-                sysCallContainer.append(temp); // Crée un code, formé de la
-                // somme des code ASCII de
-                // chaque charactère qui
-                // forment l'appel système, qui
-                // représente l'appel système
+                sysCallContainer.append(temp);
             }
             String sysCallValue = sysCallContainer.toString();
             listeSysCall.add(Double.parseDouble(sysCallValue));
@@ -245,7 +300,14 @@ public class DataSetElman {
             for (int i = 0; i < listeSysCall.size(); i++) {
                 compteur++;
                 double sysCallToWrite = listeSysCall.get(i);
-
+                /*
+                Gestion de la polution manuelle.
+                */
+//                if (sysCallRnd < 500) {
+//                    sysCallToWrite = 9711011111410997108101.0;
+//                    indiceAnormale = true;
+//                    compteurAnomalie ++;
+//                }
                 if (compteur % INPUT == 0) {
                     write.println(normalize(sysCallToWrite));
                     i = i - (INPUT - 1);
@@ -254,6 +316,7 @@ public class DataSetElman {
                 }
 
             }
+            System.out.println(compteurAnomalie*100/trace.size());
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();
         } finally {

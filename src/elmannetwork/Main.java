@@ -10,7 +10,7 @@ public class Main {
 
     public static void main(String[] args) {
         Scanner lire = new Scanner(System.in);
-        DataSetElman yo = new DataSetElman();
+        DataSetElman dataSet = new DataSetElman();
         ElmanNetwork elman = new ElmanNetwork();
         System.out.println("Train le network?");
         int rep = lire.nextInt();
