@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -39,8 +40,8 @@ public class DataSetElman {
     private ArrayList<Double> listeSysCall = new ArrayList<Double>();
     private static double dataHigh = 991081119910795103101116116105109101.0; //Représentation de l'appel système clock_gettime qui a la plus grande valeur en ASCII
     private static double dataLow = 11410197100.0; //Représentation de l'appel système read qui a la plus petite valeur en ASCII
-    private static double normalizedHigh = 1.0;
-    private static double normalizedLow = 0.0;
+    private static double normalizedHigh = 100;
+    private static double normalizedLow = 1;
     private boolean indiceAnormale = false;
     private int indiceNormalite = 1;
 
@@ -107,7 +108,7 @@ public class DataSetElman {
             for (int i = 0; i < traceBrute.length; i++) {
                 if (!traceBrute[i].equalsIgnoreCase("clock_gettime")
                         && !traceBrute[i].equalsIgnoreCase("recvfrom")) {
-                    if (i > 101) {
+                    if (i > 500) {
                         int sysCallRnd = rnd.nextInt(1000);
                         if (sysCallRnd < pollution) {
                             traceBrute[i] = "anomalie";
@@ -147,7 +148,7 @@ public class DataSetElman {
      * @param trace ArrayList de String contenant les appels systèmes triés et
      * isolés.
      */
-    public void createTrainingDataSet(ArrayList<String> trace) {
+    public void createTrainingDataSet(ArrayList<String> trace){
         listeSysCall.clear();
         int trim = trace.size() % 100;
         for (int i = 0; i < trace.size() - trim; i++) {
@@ -164,38 +165,52 @@ public class DataSetElman {
             listeSysCall.add(Double.parseDouble(sysCallValue));
         }
 
-        PrintWriter write = null;
+        FileWriter out = null;
         int compteur = 0;
         double compteurAnomalie = 0;
         try {
-            write = new PrintWriter(new FileOutputStream("dataTrainingSet.csv"));
-            write.println();
+            System.out.println("Voulez-vous commencer un nouveau training ou ajouter à celui existant?");
+            int isAppend = lr.nextInt();
+            if(isAppend == 0){
+                out = new FileWriter("dataTrainingSet.csv");
+            } else if (isAppend == 1){
+                out = new FileWriter("dataTrainingSet.csv",true);
+            }
+            out.write("\n");
+            System.out.println("Cette séquence est normale ou anormale?");
+            indiceAnormale = lr.nextBoolean();
             for (int i = 0; i < listeSysCall.size(); i++) {
                 compteur++;
                 double sysCallToWrite = listeSysCall.get(i);
 
-                if (sysCallToWrite == 9711011110997108105101.0) {
-                    indiceAnormale = true;
-                }
+//                if (sysCallToWrite == 9711011110997108105101.0) {
+//                    indiceAnormale = true;
+//                }
                 if (compteur % INPUT == 0) {
                     if (indiceAnormale) {
                         indiceNormalite = 0;
                     }
-                    write.println(normalize(sysCallToWrite) + ","
-                            + indiceNormalite);
-                    indiceAnormale = false;
+                    out.write(normalize(sysCallToWrite) + ","
+                            + indiceNormalite+"\n");
+                   // indiceAnormale = false;
                     indiceNormalite = 1;
                     if (compteur != 0) {
                         i = i - (INPUT - 1);
                     }
                 } else {
-                    write.print(normalize(sysCallToWrite) + ",");
+                    out.write(normalize(sysCallToWrite) + ",");
                 }
             }
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();
+        } catch (IOException ex) {
+            Logger.getLogger(DataSetElman.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
-            write.close();
+            try {
+                out.close();
+            } catch (IOException ex) {
+                Logger.getLogger(DataSetElman.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 
@@ -232,7 +247,7 @@ public class DataSetElman {
                 double sysCallToWrite = listeSysCall.get(i);
 
                 if (compteur % INPUT == 0) {
-                    write.println(normalize(sysCallToWrite) + ",0");
+                    write.println(normalize(sysCallToWrite));
                     i = i - (INPUT - 1);
                 } else {
                     write.print(normalize(sysCallToWrite) + ",");
