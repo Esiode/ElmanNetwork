@@ -136,9 +136,6 @@ public class DataSetElman {
                 System.out.println(sysCall);
             }
             String traces = sysCall.toString();
-            traceBrute = traces.split(","); // Voir le fichier strace.txt, cette
-            // action sépare les appels
-            // systèmes entre eux.
             System.out.println("Quel taux de pollution?");
             int pollution = lr.nextInt();
             double compteurAnomalie = 0;
@@ -206,7 +203,6 @@ public class DataSetElman {
         }
 
         FileWriter out = null;
-        PrintWriter write = null;
         int compteur = 0;
         double compteurAnomalie = 0;
         try {
@@ -253,8 +249,6 @@ public class DataSetElman {
                 Logger.getLogger(DataSetElman.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        double pourcentage = compteurAnomalie/trace.size();
-        System.out.println(pourcentage*100);
     }
 
     /** Fonction qui normalise les appels système entre 0 et 1.
@@ -316,7 +310,6 @@ public class DataSetElman {
                 }
 
             }
-            System.out.println(compteurAnomalie*100/trace.size());
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();
         } finally {
