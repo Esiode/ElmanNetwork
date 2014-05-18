@@ -192,9 +192,6 @@ public class ElmanNetwork {
         return trainMain.getError();
     }
 
-    // Fonction qui sert �commencer le training et � sauvegarder les weights
-    // TODO M�thode pour effectuer plus d'un training et sauvegarder seulement
-    // les meilleurs weights qui ont �t� utilis�.
     /**Méthode qui débute une séance d'entrainement.
      * En ce moment, cette action fait 50 séence d'entrainement et garde les
      * résultats de la meilleure séence d'entrainement.
